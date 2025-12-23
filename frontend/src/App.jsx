@@ -9,7 +9,9 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [editId, setEditId] = useState("");
 
-  useEffect(() => { fetchMovies(); }, []);
+  useEffect(() => {
+    fetchMovies();
+  }, []);
 
   const fetchMovies = async () => {
     const res = await Api.get("/movie");
@@ -20,16 +22,20 @@ const App = () => {
     const formData = new FormData();
 
     Object.keys(data).forEach((key) => {
-      if (key !== "movie_image") formData.append(key, data[key]);
+      if (key !== "movie_image") {
+        formData.append(key, data[key]);
+      }
     });
 
     for (let img of data.movie_image || []) {
       formData.append("movie_image", img);
     }
 
-    editId
-      ? await Api.patch(`/movie?id=${editId}`, formData)
-      : await Api.post("/movie", formData);
+    if (editId) {
+      await Api.patch(`/movie?id=${editId}`, formData);
+    } else {
+      await Api.post("/movie", formData);
+    }
 
     reset();
     setEditId("");
@@ -48,23 +54,72 @@ const App = () => {
 
   return (
     <div className="container my-5">
+      <h3 className="text-center mb-4">Movie Management</h3>
+
       <form onSubmit={handleSubmit(Add)} className="card p-4 shadow">
-        <input {...register("category")} placeholder="Category" className="form-control mb-2"/>
-        <input {...register("title")} placeholder="Title" className="form-control mb-2"/>
-        <input {...register("director")} placeholder="Director" className="form-control mb-2"/>
-        <input {...register("language")} placeholder="Language" className="form-control mb-2"/>
-        <input {...register("releaseYear")} type="number" placeholder="Release Year" className="form-control mb-2"/>
-        <input {...register("rating")} type="number" step="0.1" placeholder="Rating" className="form-control mb-2"/>
-        <textarea {...register("description")} placeholder="Description" className="form-control mb-2"/>
-        <input type="file" {...register("movie_image")} multiple className="form-control mb-3"/>
+        
+        <select {...register("category")} className="form-control mb-2">
+          <option value="">Select Category</option>
+          <option value="Action">Action</option>
+          <option value="Drama">Drama</option>
+          <option value="Comedy">Comedy</option>
+          <option value="Romance">Romance</option>
+        </select>
+
+        <input
+          {...register("title")}
+          placeholder="Movie Title"
+          className="form-control mb-2"
+        />
+
+        <input
+          {...register("director")}
+          placeholder="Director Name"
+          className="form-control mb-2"
+        />
+
+        <select {...register("language")} className="form-control mb-2">
+          <option value="">Select Language</option>
+          <option value="Hindi">Hindi</option>
+          <option value="English">English</option>
+          <option value="Gujarati">Gujarati</option>
+        </select>
+
+        <input
+          {...register("releaseYear")}
+          type="number"
+          placeholder="Release Year"
+          className="form-control mb-2"
+        />
+
+        <input
+          {...register("rating")}
+          type="number"
+          step="0.1"
+          placeholder="Rating (0-10)"
+          className="form-control mb-2"
+        />
+
+        <textarea
+          {...register("description")}
+          placeholder="Movie Description"
+          className="form-control mb-2"
+        ></textarea>
+
+        <input
+          type="file"
+          {...register("movie_image")}
+          multiple
+          className="form-control mb-3"
+        />
 
         <button className="btn btn-success">
           {editId ? "Update Movie" : "Add Movie"}
         </button>
       </form>
 
-      <table className="table mt-5">
-        <thead>
+      <table className="table table-bordered mt-5">
+        <thead className="table-dark">
           <tr>
             <th>Title</th>
             <th>Director</th>
@@ -81,8 +136,18 @@ const App = () => {
               <td>{m.rating}</td>
               <ImageList images={m.movie_image} />
               <td>
-                <button onClick={() => editMovie(m)} className="btn btn-warning btn-sm me-2">Edit</button>
-                <button onClick={() => deleteMovie(m._id)} className="btn btn-danger btn-sm">Delete</button>
+                <button
+                  onClick={() => editMovie(m)}
+                  className="btn btn-warning btn-sm me-2"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteMovie(m._id)}
+                  className="btn btn-danger btn-sm"
+                >
+                  Delete
+                </button>
               </td>
             </tr>
           ))}
